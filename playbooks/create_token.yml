@@ -1,0 +1,34 @@
+---
+- name: 
+  b64_token:
+    username: "{{ clientId }}"
+    password: "{{ clientSecret }}"
+  register: token
+
+- debug: var=token.token
+
+- name: Register OAuth2 Token
+  uri: 
+    url: https://{{ endpoint }}/api/oauth/token
+    method: POST
+    validate_certs: no
+    headers: 
+      Content-Type: application/x-www-form-urlencoded
+      Accept: application/json
+      Authorization: "{{ token.token }}"
+    body_format: form-urlencoded
+    body: 
+      scope: write
+      username: "{{ username }}"
+      password: "{{ password }}"
+      grant_type: password
+  register: output
+  changed_when: output.status == 200
+
+#- debug: var= output
+
+- set_fact: access_token="Bearer {{ output.json.access_token }}"
+
+#- set_fact: access_token="{{ output.json.access_token }}"
+
+- debug: var=access_token
