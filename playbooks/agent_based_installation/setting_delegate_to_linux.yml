@@ -1,0 +1,18 @@
+---
+- name: linux delegate_to setup
+
+  debug: var=linux_selected_count
+
+- set_fact: 
+    linux_delegate_to: "{{linux_vms[linux_selected_count | int]}}"
+
+- debug: 
+    msg: "{{linux_delegate_to}}"    
+
+- set_fact: 
+    linux_selected_count: "{{ linux_selected_count | int + 1}}"  
+
+- debug: 
+    msg: "{{linux_selected_count}}"    
+    
+# - import_tasks: install_agent_linux.yml

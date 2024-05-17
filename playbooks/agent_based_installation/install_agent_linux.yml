@@ -1,0 +1,78 @@
+---
+- name: Install agent on linux
+
+  delegate_to: "{{linux_delegate_to}}"
+  stat:
+    path: /root/tmp
+  register: stat_result
+
+- delegate_to: "{{linux_delegate_to}}"
+  shell: |
+    mkdir tmp
+  register: output
+  when: not stat_result.stat.exists
+
+- name: copy rpm file to tmp
+  block:
+  - delegate_to: "{{linux_delegate_to}}"
+    copy:
+      src: files/{{linux_package_name}}
+      dest: /root/tmp/package.rpm
+  rescue:
+  - debug:
+      msg: "package is already copied to destination."
+
+- name: Install package.
+  block:
+  - delegate_to: "{{linux_delegate_to}}"
+    become: true
+    become_user: root
+    shell: rpm -ivh /root/tmp/package.rpm
+    register: info
+
+  - name: print info
+    debug:
+      msg: "{{ info }}"
+
+  rescue:
+  - debug: 
+      msg: "Package is already installed"
+
+#sleep: 2
+- name: change directory
+  block:
+  - delegate_to: "{{linux_delegate_to}}"
+    shell: |
+      cd /root/tmp
+      pwd
+    register: output
+
+  - debug: var=output
+  rescue:
+  - debug:
+      msg: "Failed to change the directory."
+
+- debug:
+    msg: "printing {{server_name}}"
+- debug: 
+    msg: "printing {{domain}}"
+
+- name: Register vm
+  block:
+  - delegate_to: "{{linux_delegate_to}}"
+    become: true
+    become_user: root
+    shell: /usr/local/avamar/etc/avagent.d register {{server_name}} {{domain}}
+    register: register_info
+  - debug:
+      msg: "{{ register_info }}"
+
+  rescue:
+  - debug:
+      msg: "Failed to register vm on serevr"
+
+- debug:
+    msg: "linux_selected_count: {{linux_selected_count}}, linux_selected_count: {{linux_selected_count}}"
+    
+- include_tasks: setting_delegate_to_linux.yml
+  when: linux_selected_count != linux_vm_count

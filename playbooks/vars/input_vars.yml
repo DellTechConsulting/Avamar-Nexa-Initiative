@@ -1,0 +1,9 @@
+agent_installation: 
+  - location: 10.60.33.121
+    vm_list: [10.118.169.70]
+    os_type: ['linux']
+    domain: clients
+  
+add_client:
+  - client_name: 10.60.20.123
+    domain: /

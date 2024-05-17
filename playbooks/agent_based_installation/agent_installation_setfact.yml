@@ -1,0 +1,24 @@
+---
+- name: set_fact for linux and windows
+
+  debug: var=selected_count
+
+- set_fact: 
+    linux_selected_count: 0
+
+- import_tasks: setting_delegate_to_linux.yml
+  when: linux_vm_count != "0"
+
+# - set_fact:
+#     windows_selected_count: 0
+
+# - import_tasks: setting_delegate_to_windows.yml
+#   when: windows_vm_count != "0"
+
+
+- set_fact:
+    windows_vms: []
+    linux_vms: []
+    
+- include_tasks: create_inventory.yml
+  when: selected_count != total_count

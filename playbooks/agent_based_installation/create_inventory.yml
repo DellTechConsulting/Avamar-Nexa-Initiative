@@ -1,0 +1,65 @@
+- debug: var=selected_count
+
+- name: check if host file exists or not
+  stat:
+   path: "host_list"
+  register: file_to_delete
+
+- debug:
+    msg:
+      - "Printing the status of the job options file"
+      - "{{file_to_delete}}"
+
+- name: Delete the  file if it exists
+  file:
+    path: "host_list"
+    state: absent
+  when: file_to_delete.stat.exists and file_to_delete.stat.isreg
+  register: file_deleted
+
+- debug:
+    msg: 
+      - "printing the delete status of job options file"
+      - "{{file_deleted}}"
+
+- name: Create host_list file
+  file:
+    path: "host_list"
+    state: touch
+  when: file_deleted is defined or file_to_delete.stat.exists == false
+
+#listing linix vm's
+- name: listing linux vm's 
+  set_fact:   
+    linux_vms: "{{ linux_vms + [item.1] }}"
+  when: item.0 == 'linux' 
+  with_together:
+    - "{{ agent_installation[selected_count | int].os_type }}"
+    - "{{ agent_installation[selected_count | int].vm_list }}"
+
+#linux vm count
+- set_fact: 
+    linux_vm_count: "{{ linux_vms | length }}"
+    
+- debug: var=linux_vms
+
+#adding first line in file 
+- name: Adding first line
+  lineinfile:
+    dest: host_list
+    line: "[linux_hosts]"
+  when: linux_vm_count != "0"
+
+#adding linux ip's after [linux_hosts]
+- name: Adding linux vm's
+  lineinfile:
+    dest: host_list
+    line: "{{ item }} ansible_user=root ansible_ansible_password=emc171"
+    insertafter: '\[linux_hosts\]'
+  when: linux_vm_count != "0"
+  with_items: "{{linux_vms}}"
+
+- set_fact: 
+    selected_count: "{{ selected_count | int + 1}}"
+
+- import_tasks: agent_installation_setfact.yml

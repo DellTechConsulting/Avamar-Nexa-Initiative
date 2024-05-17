@@ -1,0 +1,65 @@
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files: 
+    - vars/main.yml
+
+  tasks:
+   
+    - name: create_token
+      b64_token:
+        username: "{{ username }}"
+        password: "{{ password }}"
+      register: auth
+    - debug: var=auth
+
+
+    # - name: Create base64 encoded token
+    #   set_fact:
+    #     auth: "{{ (username + ':' + password) | b64encode }}"
+
+    # - debug:
+    #     msg: "{{auth}}"
+
+   
+  
+
+    - name: Register OAuth2 Client
+      uri: 
+        url: https://{{ endpoint }}/api/v1/oauth2/clients
+        method: POST
+        validate_certs: no
+        headers: 
+          Content-Type: application/json
+          Accept: application/json
+          Authorization: TUNVc2VyOkFWRU1FQVN1cHAwcnRfMQ==
+        body_format: json
+        body:
+          accessTokenValiditySeconds: 1800
+          authorizedGrantTypes:
+            - password
+          autoApproveScopes:
+            - all
+          clientName: "{{ api_client }}"
+          redirectUris: 
+            - https://my-app-server/callback
+          refreshTokenValiditySeconds: 43200
+          scopes:
+            - read
+            - write
+      register: output
+      changed_when: output.status == 200
+
+    #- debug: var=output
+
+    - set_fact: clientId="{{ output.json.clientId }}"
+
+    - set_fact: clientSecret="{{ output.json.clientSecret }}"
+
+    - debug: var=clientId
+    - debug: var=clientSecret
+    
+    - include_tasks: create_token.yml

@@ -1,0 +1,42 @@
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files: 
+    - vars/main.yml
+
+  tasks:
+    - name: Register a Client
+      uri: 
+        url: https://{{ endpoint }}/api/v1/clients
+        method: POST
+        validate_certs: no
+        headers: 
+          Content-Type: application/json
+          Accept: application/json
+          Authorization: "{{ token }}"
+        body_format: json
+        body:
+             {
+                "contact": {
+                  "email": "admin@emc.com",
+                  "location": "176 South Street Hopkinton",
+                  "name": "admin",
+                  "notes": "Dell EMC",
+                  "phone": "1-866-438-3622"
+                },
+                "domainFqdn": "{{domain}}"
+                "name": "{{client_name}}"
+              }          
+      register: output
+      changed_when: output.status == 200
+
+    - debug: 
+        msg: "{{output}}"
+
+    - set_fact: clientId="{{ output.json.id }}"
+
+    - debug: var=clientId
+  

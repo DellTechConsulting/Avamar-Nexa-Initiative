@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - include_vars: ../vars/input_vars.yml
+    - include_vars: ../vars/main.yml
+    
+
+    - set_fact: 
+        total_count: "{{ agent_installation | length }}"
+    - set_fact: 
+        selected_count: 0
+
+    - import_tasks: create_inventory.yml

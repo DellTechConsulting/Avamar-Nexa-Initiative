@@ -1,0 +1,2 @@
+[linux_hosts]
+10.118.169.70 ansible_user=root ansible_ansible_password=emc171
