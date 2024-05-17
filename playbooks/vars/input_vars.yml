@@ -4,6 +4,5 @@ agent_installation:
     os_type: ['linux']
     domain: clients
   
-add_client:
-  - client_name: 10.60.20.123
-    domain: /
+client_name: 10.60.20.123
+domain: /
